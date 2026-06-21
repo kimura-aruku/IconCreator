@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ICO Converter</title>
+<title>Icon Creator</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -148,7 +148,7 @@
 </head>
 <body>
 <div class="container">
-  <h1>ICO <span>Converter</span></h1>
+  <h1>ICON <span>CREATOR</span></h1>
 
   <div class="card">
     <span class="label">ソース画像</span>
@@ -165,7 +165,7 @@
     <div class="sizes-grid" id="sizesGrid"></div>
   </div>
 
-  <button class="btn" id="convertBtn" disabled>Generate .ico</button>
+  <button class="btn" id="createBtn" disabled>Create .ico</button>
   <div class="message" id="message"></div>
 </div>
 
@@ -184,7 +184,7 @@ SIZES.forEach(s => {
 const fileInput = document.getElementById('fileInput');
 const dropzone = document.getElementById('dropzone');
 const fileNameEl = document.getElementById('fileName');
-const convertBtn = document.getElementById('convertBtn');
+const createBtn = document.getElementById('createBtn');
 const messageEl = document.getElementById('message');
 
 let selectedFile = null;
@@ -204,7 +204,7 @@ dropzone.addEventListener('drop', e => {
 function setFile(f) {
   selectedFile = f;
   fileNameEl.textContent = f.name;
-  convertBtn.disabled = false;
+  createBtn.disabled = false;
   hideMessage();
 }
 
@@ -289,14 +289,14 @@ function loadImage(file) {
   });
 }
 
-convertBtn.addEventListener('click', async () => {
+createBtn.addEventListener('click', async () => {
   if (!selectedFile) return;
 
   const sizes = [...document.querySelectorAll('#sizesGrid input:checked')].map(c => parseInt(c.value));
   if (sizes.length === 0) { showMessage('サイズを1つ以上選択してください', 'error'); return; }
 
-  convertBtn.disabled = true;
-  convertBtn.textContent = 'Generating...';
+  createBtn.disabled = true;
+  createBtn.textContent = 'Creating...';
   hideMessage();
 
   try {
@@ -324,8 +324,8 @@ convertBtn.addEventListener('click', async () => {
   } catch (e) {
     showMessage('変換中にエラーが発生しました: ' + e.message, 'error');
   } finally {
-    convertBtn.disabled = false;
-    convertBtn.textContent = 'Generate .ico';
+    createBtn.disabled = false;
+    createBtn.textContent = 'Create .ico';
   }
 });
 </script>
