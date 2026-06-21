@@ -1,0 +1,243 @@
+:root {
+  /* アプリ全体の基本色 */
+  --bg: #f4f2ee;
+  --surface: #ffffff;
+  --border: #d6d2c8;
+  --text: #1a1814;
+  --muted: #7a7670;
+  --subtle-text: #aaa69f;
+  --accent: #1a1814;
+  --highlight: #f6f0e4;
+
+  /* サイズ選択タイル: 未選択／選択／ホバー時の色 */
+  --size-option-text: var(--subtle-text);
+  --size-option-selected-text: var(--muted);
+  --size-option-selected-bg: var(--highlight);
+  --size-option-hover-bg: var(--bg);
+  --size-checkbox-color: var(--muted);
+
+  /* 「全選択」「全解除」ボタンの色 */
+  --selection-action-text: var(--muted);
+  --selection-action-bg: var(--bg);
+  --selection-action-hover-text: var(--text);
+  --selection-action-hover-bg: #eae7e0;
+
+  /* 「Create .ico」ボタンの色 */
+  --create-button-text: #ffffff;
+  --create-button-bg: var(--accent);
+  --create-button-hover-opacity: 0.85;
+  --create-button-disabled-text: var(--muted);
+  --create-button-disabled-bg: var(--surface);
+  --create-button-disabled-stripe: var(--border);
+
+  /* 成功・エラーメッセージの色 */
+  --error-message-bg: #fff0f0;
+  --error-message-border: #f0c0c0;
+  --error-message-text: #c0392b;
+  --success-message-bg: #f0fff4;
+  --success-message-border: #b0dfc0;
+  --success-message-text: #27ae60;
+
+  /* フォント設定 */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .container { width: 100%; max-width: 520px; }
+
+  h1 {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+  }
+  h1 span { color: var(--text); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .section-header .label { margin-bottom: 0; }
+  .selection-actions { display: flex; gap: 0.75rem; }
+  .selection-action {
+    appearance: none;
+    padding: 0.35rem 0.55rem;
+    border: none;
+    background: var(--selection-action-bg);
+    color: var(--selection-action-text);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .selection-action:hover {
+    background: var(--selection-action-hover-bg);
+    color: var(--selection-action-hover-text);
+  }
+  .selection-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .dropzone {
+    border: 1.5px dashed var(--border);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .dropzone:hover, .dropzone.drag-over {
+    background: var(--highlight);
+    border-color: var(--accent);
+  }
+  .dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .dropzone-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; color: var(--muted); }
+  .dropzone-text { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+  .file-selected {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.75rem;
+    word-break: break-all;
+    min-height: 1.2em;
+  }
+
+  .sizes-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+  .size-item { position: relative; }
+  .size-item input[type="checkbox"] {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    z-index: 1;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin: 0;
+    accent-color: var(--size-checkbox-color);
+    cursor: pointer;
+    transform: translateY(-50%);
+  }
+  .size-item label {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 2.25rem;
+    padding: 0.5rem 0.35rem 0.5rem 1.9rem;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--size-option-text);
+    cursor: pointer;
+    transition: all 0.12s;
+    user-select: none;
+  }
+  .size-item input:checked + label {
+    background: var(--size-option-selected-bg);
+    color: var(--size-option-selected-text);
+  }
+  .size-item label:hover {
+    background: var(--size-option-hover-bg);
+    color: var(--size-option-text);
+  }
+  .size-item input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--create-button-bg);
+    color: var(--create-button-text);
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 1rem;
+  }
+  .btn:hover { opacity: var(--create-button-hover-opacity); }
+  .btn:disabled {
+    background-color: var(--create-button-disabled-bg);
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent 0,
+      transparent 6px,
+      var(--create-button-disabled-stripe) 6px,
+      var(--create-button-disabled-stripe) 8px
+    );
+    color: var(--create-button-disabled-text);
+    opacity: 1;
+    cursor: not-allowed;
+  }
+
+  .message {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    display: none;
+  }
+  .message.error {
+    background: var(--error-message-bg);
+    border: 1px solid var(--error-message-border);
+    color: var(--error-message-text);
+    display: block;
+  }
+  .message.success {
+    background: var(--success-message-bg);
+    border: 1px solid var(--success-message-border);
+    color: var(--success-message-text);
+    display: block;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 1rem; }
+    .card { padding: 1.25rem; }
+    .sizes-grid { grid-template-columns: repeat(2, 1fr); }
+    .section-header { align-items: flex-start; }
+    .selection-actions { flex-shrink: 0; }
+  }
