@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICO Converter</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f2ee;
+    --surface: #ffffff;
+    --border: #d6d2c8;
+    --text: #1a1814;
+    --muted: #7a7670;
+    --accent: #1a1814;
+    --highlight: #e8e0d0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .container { width: 100%; max-width: 520px; }
+
+  h1 {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+  }
+  h1 span { color: var(--text); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .dropzone {
+    border: 1.5px dashed var(--border);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  .dropzone:hover, .dropzone.drag-over {
+    background: var(--highlight);
+    border-color: var(--accent);
+  }
+  .dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .dropzone-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; color: var(--muted); }
+  .dropzone-text { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+  .file-selected {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text);
+    margin-top: 0.75rem;
+    word-break: break-all;
+    min-height: 1.2em;
+  }
+
+  .sizes-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+  .size-item { position: relative; }
+  .size-item input[type="checkbox"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .size-item label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.25rem;
+    border: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.12s;
+    user-select: none;
+  }
+  .size-item input:checked + label {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .size-item label:hover { border-color: var(--accent); color: var(--text); }
+
+  .btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 1rem;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .message {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    display: none;
+  }
+  .message.error { background: #fff0f0; border: 1px solid #f0c0c0; color: #c0392b; display: block; }
+  .message.success { background: #f0fff4; border: 1px solid #b0dfc0; color: #27ae60; display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>ICO <span>Converter</span></h1>
+
+  <div class="card">
+    <span class="label">ソース画像</span>
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" accept=".png,.svg,.jpg,.jpeg">
+      <span class="dropzone-icon">⬆</span>
+      <div class="dropzone-text">PNG / SVG をドロップ<br>またはクリックして選択</div>
+    </div>
+    <div class="file-selected" id="fileName"></div>
+  </div>
+
+  <div class="card">
+    <span class="label">含めるサイズ</span>
+    <div class="sizes-grid" id="sizesGrid"></div>
+  </div>
+
+  <button class="btn" id="convertBtn" disabled>Generate .ico</button>
+  <div class="message" id="message"></div>
+</div>
+
+<script>
+const SIZES = [16, 24, 32, 48, 64, 128, 256];
+
+// サイズチェックボックス生成
+const grid = document.getElementById('sizesGrid');
+SIZES.forEach(s => {
+  const item = document.createElement('div');
+  item.className = 'size-item';
+  item.innerHTML = `<input type="checkbox" id="s${s}" value="${s}" checked><label for="s${s}">${s}x${s}</label>`;
+  grid.appendChild(item);
+});
+
+const fileInput = document.getElementById('fileInput');
+const dropzone = document.getElementById('dropzone');
+const fileNameEl = document.getElementById('fileName');
+const convertBtn = document.getElementById('convertBtn');
+const messageEl = document.getElementById('message');
+
+let selectedFile = null;
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) setFile(fileInput.files[0]);
+});
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+});
+
+function setFile(f) {
+  selectedFile = f;
+  fileNameEl.textContent = f.name;
+  convertBtn.disabled = false;
+  hideMessage();
+}
+
+function hideMessage() { messageEl.className = 'message'; messageEl.textContent = ''; }
+function showMessage(text, type) { messageEl.className = `message ${type}`; messageEl.textContent = text; }
+
+// ---- ICO builder ----
+function buildIco(entries) {
+  // entries: [{width, height, pngBuffer: ArrayBuffer}]
+  const count = entries.length;
+  const FILE_HEADER = 6;
+  const DIR_SIZE = 16;
+  const headerSize = FILE_HEADER + DIR_SIZE * count;
+  const totalSize = headerSize + entries.reduce((s, e) => s + e.pngBuffer.byteLength, 0);
+
+  const buf = new ArrayBuffer(totalSize);
+  const view = new DataView(buf);
+  const bytes = new Uint8Array(buf);
+
+  view.setUint16(0, 0, true);
+  view.setUint16(2, 1, true);
+  view.setUint16(4, count, true);
+
+  let dataOffset = headerSize;
+  entries.forEach((entry, i) => {
+    const d = FILE_HEADER + DIR_SIZE * i;
+    view.setUint8(d,   entry.width  >= 256 ? 0 : entry.width);
+    view.setUint8(d+1, entry.height >= 256 ? 0 : entry.height);
+    view.setUint8(d+2, 0);
+    view.setUint8(d+3, 0);
+    view.setUint16(d+4, 0, true);
+    view.setUint16(d+6, 32, true);
+    view.setUint32(d+8,  entry.pngBuffer.byteLength, true);
+    view.setUint32(d+12, dataOffset, true);
+    bytes.set(new Uint8Array(entry.pngBuffer), dataOffset);
+    dataOffset += entry.pngBuffer.byteLength;
+  });
+  return buf;
+}
+
+// 画像をCanvasでリサイズしてPNG ArrayBufferを得る
+function renderToPng(img, size) {
+  return new Promise(resolve => {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, size, size);
+    ctx.drawImage(img, 0, 0, size, size);
+    canvas.toBlob(blob => {
+      blob.arrayBuffer().then(resolve);
+    }, 'image/png');
+  });
+}
+
+// SVGをImageとして読み込む
+function loadSvg(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      // SVGはサイズ指定がないと小さくなるので大きめに
+      const blob = new Blob([e.target.result], {type: 'image/svg+xml'});
+      const url = URL.createObjectURL(blob);
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = reject;
+      img.src = url;
+    };
+    reader.onerror = reject;
+    reader.readAsText(file);
+  });
+}
+
+// PNG/JPGをImageとして読み込む
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+convertBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+
+  const sizes = [...document.querySelectorAll('#sizesGrid input:checked')].map(c => parseInt(c.value));
+  if (sizes.length === 0) { showMessage('サイズを1つ以上選択してください', 'error'); return; }
+
+  convertBtn.disabled = true;
+  convertBtn.textContent = 'Generating...';
+  hideMessage();
+
+  try {
+    const ext = selectedFile.name.split('.').pop().toLowerCase();
+    const img = ext === 'svg' ? await loadSvg(selectedFile) : await loadImage(selectedFile);
+
+    const entries = await Promise.all(
+      sizes.map(async size => ({
+        width: size,
+        height: size,
+        pngBuffer: await renderToPng(img, size)
+      }))
+    );
+
+    const icoBuffer = buildIco(entries);
+    const blob = new Blob([icoBuffer], { type: 'image/x-icon' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const baseName = selectedFile.name.replace(/\.[^.]+$/, '');
+    a.download = `${baseName}.ico`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+
+    showMessage('生成完了。ダウンロードが始まります。', 'success');
+  } catch (e) {
+    showMessage('変換中にエラーが発生しました: ' + e.message, 'error');
+  } finally {
+    convertBtn.disabled = false;
+    convertBtn.textContent = 'Generate .ico';
+  }
+});
+</script>
+</body>
+</html>
